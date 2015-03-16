@@ -56,7 +56,7 @@ var GameStates = {
             this.lasers = this.game.add.group();
             this.lasers.enableBody = true;
             this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
-            this.lasers.createMultiple(40, 'laser-1');
+            this.lasers.createMultiple(50, 'laser-1');
             this.lasers.setAll('anchor.x', 0.5);
             this.lasers.setAll('anchor.y', 0.5);
 
@@ -80,48 +80,74 @@ var GameStates = {
             this.game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
         },
         update: function() {
+            var _self = this;
+            //Bring ship to top to make laser fire from under the ship
             this.ship.bringToTop();
 
+            //Collision between lasers and enemies
             this.game.physics.arcade.overlap(this.lasers, this.enemies, this.laserHitEnemy, null, this);
 
+            //INPUTS
             if(this.cursors.up.isDown) {
                 this.game.physics.arcade.accelerationFromRotation(this.ship.rotation, 200, this.ship.body.acceleration);
             }
             else {
                 this.ship.body.acceleration.set(0);
             }
-            if (this.cursors.left.isDown)
-            {
+            if(this.cursors.down.isDown) {
+                this.game.physics.arcade.accelerationFromRotation(this.ship.rotation, -200, this.ship.body.acceleration);
+            }
+            if (this.cursors.left.isDown) {
                 this.ship.body.angularVelocity = -300;
             }
-            else if (this.cursors.right.isDown)
-            {
+            else if (this.cursors.right.isDown) {
                 this.ship.body.angularVelocity = 300;
             }
-            else
-            {
+            else {
                 this.ship.body.angularVelocity = 0;
             }
-            if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-            {
-                console.log('fire');
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
                 this.fire();
             }
 
-            //Display Enemies
+            //Enemies Spawn
             if(this.game.time.now > this.enemyTime) {
                 console.log('pop');
                 var enemy = this.enemies.getFirstExists(false);
+                var spawnZones = ['top', 'left', 'right', 'bottom'];
                 if(enemy) {
-                    enemy.reset(this.ship.body.x + 100, this.ship.body.y + 100);
+                    var spawnZone = spawnZones[rand(0, 3)],
+                        spawnX = 0,
+                        spawnY;
+
+                    spawnZone = 'top';
+                    switch(spawnZone) {
+                        case 'top':
+                            spawnX = rand(this.camera.x, this.camera.x+this.game.width);
+                            spawnY = rand(this.camera.y+20, this.camera.y+50);
+                            break;
+                        case 'left':
+                            break;
+                        case 'right':
+                            break;
+                        case 'bottom':
+                            break;
+                    }
+                    enemy.reset(spawnX, spawnY);
+                    enemy.speed = rand(50, 200);
+                    enemy.update = function() {
+                        this.rotation = _self.game.physics.arcade.angleBetween(this, _self.ship);
+                        this.body.velocity.x = Math.cos(this.rotation) * this.speed;
+                        this.body.velocity.y = Math.sin(this.rotation) * this.speed;
+
+                    };
                 }
-                this.enemyTime = this.game.time.now + 3000;
+                this.enemyTime = this.game.time.now + 1000;
             }
 
         },
         render: function() {
-
-            var zone = this.game.camera.deadzone;
+            //var zone = this.game.camera.deadzone;
             //this.game.debug.geom(zone, "#FFF", "#FFF");
         },
         fire: function() {
@@ -131,10 +157,10 @@ var GameStates = {
                 if (laser)
                 {
                     laser.reset(this.ship.body.x + 16, this.ship.body.y + 16);
-                    laser.lifespan = 1000;
+                    laser.lifespan = 3000;
                     laser.rotation = this.ship.rotation;
                     this.game.physics.arcade.velocityFromRotation(this.ship.rotation, 400, laser.body.velocity);
-                    this.laserTime= this.game.time.now + 100;
+                    this.laserTime= this.game.time.now + 80;
                 }
             }
         },
@@ -146,7 +172,6 @@ var GameStates = {
         }
     }
 };
-
 function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
