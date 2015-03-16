@@ -24,11 +24,13 @@ var GameStates = {
     },
     gameState: {
         laserTime: 0,
+        enemyTime: 1000,
 
         preload: function() {
             this.game.load.image('gameBg', 'website/assets/images/deep-space.jpg');
             this.game.load.image('laser-1', 'website/assets/images/fire-1.png');
             this.game.load.spritesheet('ship', 'website/assets/images/ship-2.png', 32, 32, 6);
+            this.game.load.image('enemy-1', 'website/assets/images/enemy-1.png');
         },
         create: function() {
             var world = this.game.world;
@@ -54,7 +56,6 @@ var GameStates = {
             this.lasers = this.game.add.group();
             this.lasers.enableBody = true;
             this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
-
             this.lasers.createMultiple(40, 'laser-1');
             this.lasers.setAll('anchor.x', 0.5);
             this.lasers.setAll('anchor.y', 0.5);
@@ -68,11 +69,19 @@ var GameStates = {
                 laser.events.onOutOfBounds.add(this.resetLaser, this);
             }*/
 
+            this.enemies = this.game.add.group();
+            this.enemies.enableBody = true;
+            this.enemies.physicsBodyType = Phaser.Physics.ARCADE;
+            this.enemies.createMultiple(100, 'enemy-1');
+            this.enemies.setAll('anchor.x', 0.5);
+            this.enemies.setAll('anchor.y', 0.5);
+
             this.cursors = this.game.input.keyboard.createCursorKeys();
             this.game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
         },
         update: function() {
             this.ship.bringToTop();
+
             if(this.cursors.up.isDown) {
                 this.game.physics.arcade.accelerationFromRotation(this.ship.rotation, 200, this.ship.body.acceleration);
             }
@@ -96,8 +105,17 @@ var GameStates = {
                 console.log('fire');
                 this.fire();
             }
+
+            //Display Enemies
+            if(this.game.now > this.enemyTime) {
+                var enemy = this.enemies.getFirstExists(false);
+                enemy.reset(this.ship.body.x + 100, this.ship.body.y + 100);
+                this.enemyTime = this.game.time.now + 3000;
+            }
+
         },
         render: function() {
+
             var zone = this.game.camera.deadzone;
             //this.game.debug.geom(zone, "#FFF", "#FFF");
         },
@@ -120,3 +138,7 @@ var GameStates = {
         }
     }
 };
+
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
