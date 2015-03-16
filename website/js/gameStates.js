@@ -30,7 +30,7 @@ var GameStates = {
             this.game.load.image('gameBg', 'website/assets/images/deep-space.jpg');
             this.game.load.image('laser-1', 'website/assets/images/fire-1.png');
             this.game.load.spritesheet('ship', 'website/assets/images/ship-2.png', 32, 32, 6);
-            this.game.load.image('enemy-1', 'website/assets/images/enemy-1.png');
+            this.game.load.image('enemy-1', 'website/assets/images/enemy-2.png');
         },
         create: function() {
             var world = this.game.world;
@@ -82,6 +82,8 @@ var GameStates = {
         update: function() {
             this.ship.bringToTop();
 
+            this.game.physics.arcade.overlap(this.lasers, this.enemies, this.laserHitEnemy, null, this);
+
             if(this.cursors.up.isDown) {
                 this.game.physics.arcade.accelerationFromRotation(this.ship.rotation, 200, this.ship.body.acceleration);
             }
@@ -107,9 +109,12 @@ var GameStates = {
             }
 
             //Display Enemies
-            if(this.game.now > this.enemyTime) {
+            if(this.game.time.now > this.enemyTime) {
+                console.log('pop');
                 var enemy = this.enemies.getFirstExists(false);
-                enemy.reset(this.ship.body.x + 100, this.ship.body.y + 100);
+                if(enemy) {
+                    enemy.reset(this.ship.body.x + 100, this.ship.body.y + 100);
+                }
                 this.enemyTime = this.game.time.now + 3000;
             }
 
@@ -135,6 +140,9 @@ var GameStates = {
         },
         resetLaser: function(laser) {
             laser.kill();
+        },
+        laserHitEnemy: function(laser, enemy) {
+            enemy.kill();
         }
     }
 };
