@@ -43,9 +43,6 @@ var GameStates = {
             this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
             this.bg = this.game.add.tileSprite(0, 0, world.width, world.height, 'gameBg');
-            this.boom = this.game.add.sprite(40, 100, 'boom-1');
-            this.boom.animations.add('boom');
-            this.boom.anchor.set(0.5);
 
             this.ship = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'ship');
             this.ship.frame = 5;
@@ -54,10 +51,10 @@ var GameStates = {
             this.ship.health = this.scope.health;
             this.game.physics.enable(this.ship, Phaser.Physics.ARCADE);
             this.ship.body.collideWorldBounds = true;
-            this.ship.body.drag.set(200);
+            this.ship.body.drag.set(400);
             this.ship.body.maxVelocity.set(200);
 
-            this.emitter = this.game.add.emitter(this.game.world.centerX, this.game.world.centerY, 400);
+            this.emitter = this.game.add.emitter(this.game.world.centerX, this.game.world.centerY, 100);
             this.emitter.makeParticles('fire-1');
             this.emitter.setAlpha(1, 0, 300);
             this.emitter.gravity = 0;
@@ -65,8 +62,8 @@ var GameStates = {
             this.emitter.setXSpeed(0, 0);
             this.emitter.setYSpeed(0, 0);
 
-            this.game.camera.follow(this.ship);
-            this.game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 200);
+            this.cameraPos = new Phaser.Point(0, 0);
+            this.cameraPos.setTo(this.ship.x, this.ship.y);
 
             this.lasers = this.game.add.group();
             this.lasers.enableBody = true;
@@ -75,21 +72,22 @@ var GameStates = {
             this.lasers.setAll('anchor.x', 0.5);
             this.lasers.setAll('anchor.y', 0.5);
 
-            /*for (var i = 0; i < 20; i++) {
-                var laser = this.lasers.create(0, 0, 'laser-1');
-                laser.name = 'laser-'+i;
-                laser.exists = false;
-                laser.visible = false;
-                laser.checkWorldBounds = true;
-                laser.events.onOutOfBounds.add(this.resetLaser, this);
-            }*/
-
             this.enemies = this.game.add.group();
             this.enemies.enableBody = true;
             this.enemies.physicsBodyType = Phaser.Physics.ARCADE;
             this.enemies.createMultiple(100, 'enemy-1');
             this.enemies.setAll('anchor.x', 0.5);
             this.enemies.setAll('anchor.y', 0.5);
+
+            this.booms = this.game.add.group();
+            for (var i = 0; i < 10; i++) {
+                var boom = this.game.add.sprite(2500, 2550, 'boom-1');
+                boom.animations.add('boom');
+
+                this.booms.add(boom);
+            }
+
+            this.booms.callAll('animations.play', 'animations', 'boom');
 
             this.cursors = this.game.input.keyboard.createCursorKeys();
             this.game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
@@ -104,8 +102,16 @@ var GameStates = {
             this.game.physics.arcade.overlap(this.emitter, this.enemies, this.laserHitEnemy, null, this);
             this.game.physics.arcade.overlap(this.ship, this.enemies, this.shipHitEnemy, null, this);
 
+            //Ship Fire
             this.emitter.emitX = this.ship.x;
             this.emitter.emitY = this.ship.y;
+
+            //Camera
+            var lerp = 0.07;
+            this.cameraPos.x += (this.ship.x - this.cameraPos.x) * lerp;
+            this.cameraPos.y += (this.ship.y - this.cameraPos.y) * lerp;
+            this.game.camera.focusOnXY(this.cameraPos.x, this.cameraPos.y);
+
 
             //INPUTS
             if(this.cursors.up.isDown) {
@@ -158,10 +164,13 @@ var GameStates = {
         laserHitEnemy: function(laser, enemy) {
             laser.kill();
             enemy.kill();
-            this.boom.x = enemy.x;
-            this.boom.y = enemy.y;
+            var boom = this.booms.getFirstExists(false);
+            if(boom) {
+                boom.x = enemy.x;
+                boom.y = enemy.y;
 
-            this.boom.play('boom', 100, false, true);
+                boom.play('boom', 100, false, true);
+            }
         },
         shipHitEnemy: function(ship, enemy) {
             ship.health -= 1;
