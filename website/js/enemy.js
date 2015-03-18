@@ -27,7 +27,6 @@ function Enemy(game, camera, ship) {
         var enemy = this.enemies.getFirstExists(false);
         var spawnZones = ['top', 'left', 'right', 'bottom'];
         if(enemy) {
-            console.log(enemy);
             var spawnZone = spawnZones[rand(0, 3)],
                 spawnX = 0,
                 spawnY;
@@ -58,7 +57,6 @@ function Enemy(game, camera, ship) {
                 _self.game.physics.arcade.accelerationFromRotation(this.rotation, 1000, this.body.acceleration);
             };
         }
-        console.log('test');
         this.ENEMY_NEXT_SPAWN = this.game.time.now + this.ENEMY_SPAWN_INTERVAL;
     }
 }
