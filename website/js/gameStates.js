@@ -45,13 +45,13 @@ var GameStates = {
 
             this.game.add.tileSprite(0, 0, world.width, world.height, 'gameBg');
 
-            this.cameraPos = new Phaser.Point(0, 0);
-            this.cameraPos.setTo(this.ship.x, this.ship.y);
-
             var lasers = new Lasers();
             lasers.init(this.game);
             lasers.create();
             this.lasers = lasers.lasers;
+
+            var bonus = new Bonus(this.game);
+            bonus.create();
 
             var ship = new Ship();
             ship.init(this.game, this.scope, this.cursors, this.lasers);
@@ -59,7 +59,7 @@ var GameStates = {
             this.classes.ship = ship;
             this.ship = ship.ship;
 
-            var enemies = new Enemy(this.game, this.camera, this.ship);
+            var enemies = new Enemy(this.game, this.camera, this.ship, bonus.bonus);
             enemies.create();
             this.classes.enemy = enemies;
             this.enemies = enemies.enemies;
@@ -72,8 +72,19 @@ var GameStates = {
 
                 this.booms.add(boom);
             }
+
+            this.cameraPos = new Phaser.Point(0, 0);
+            this.cameraPos.setTo(this.ship.x, this.ship.y);
+
         },
         update: function() {
+
+            //Camera
+            var lerp = 0.07;
+            this.cameraPos.x += (this.ship.x - this.cameraPos.x) * lerp;
+            this.cameraPos.y += (this.ship.y - this.cameraPos.y) * lerp;
+            this.game.camera.focusOnXY(this.cameraPos.x, this.cameraPos.y);
+
             this.classes.ship.update();
             this.classes.enemy.update();
 
@@ -82,11 +93,7 @@ var GameStates = {
             this.game.physics.arcade.overlap(this.classes.ship.emitter, this.enemies, this.laserHitEnemy, null, this);
             this.game.physics.arcade.overlap(this.ship, this.enemies, this.shipHitEnemy, null, this);
 
-            //Camera
-            var lerp = 0.07;
-            this.cameraPos.x += (this.ship.x - this.cameraPos.x) * lerp;
-            this.cameraPos.y += (this.ship.y - this.cameraPos.y) * lerp;
-            this.game.camera.focusOnXY(this.cameraPos.x, this.cameraPos.y);
+
         },
         render: function() {
             //var zone = this.game.camera.deadzone;

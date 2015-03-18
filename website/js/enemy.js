@@ -2,7 +2,8 @@
  * Created by najie on 17/03/15.
  */
 function Enemy(game, camera, ship) {
-    this.ENEMY_TIME = 1000;
+    this.ENEMY_NEXT_SPAWN = 100;
+    this.ENEMY_SPAWN_INTERVAL = 1000;
 
     this.game = game;
     this.camera = camera;
@@ -17,7 +18,7 @@ function Enemy(game, camera, ship) {
         this.enemies.setAll('anchor.y', 0.5);
     };
     this.update = function() {
-        if(this.game.time.now > this.ENEMY_TIME) {
+        if(this.game.time.now > this.ENEMY_NEXT_SPAWN) {
             this.spawn();
         }
     };
@@ -26,6 +27,7 @@ function Enemy(game, camera, ship) {
         var enemy = this.enemies.getFirstExists(false);
         var spawnZones = ['top', 'left', 'right', 'bottom'];
         if(enemy) {
+            console.log(enemy);
             var spawnZone = spawnZones[rand(0, 3)],
                 spawnX = 0,
                 spawnY;
@@ -47,7 +49,6 @@ function Enemy(game, camera, ship) {
                     spawnY = this.camera.y + this.game.height + 20;
                     break;
             }
-
             enemy.reset(spawnX, spawnY);
             enemy.speed = rand(50, 200);
             enemy.update = function() {
@@ -55,10 +56,9 @@ function Enemy(game, camera, ship) {
                 this.body.maxVelocity.set(100);
 
                 _self.game.physics.arcade.accelerationFromRotation(this.rotation, 1000, this.body.acceleration);
-
-
             };
         }
-        this.ENEMY_TIME = this.game.time.now + 200;
+        console.log('test');
+        this.ENEMY_NEXT_SPAWN = this.game.time.now + this.ENEMY_SPAWN_INTERVAL;
     }
 }
