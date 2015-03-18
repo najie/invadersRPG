@@ -12,7 +12,7 @@ invaders.directive("gameCanvas",function($injector) {
             var w = parseInt($("#game-canvas").css('width'), 10);
 
             scope.game = new Phaser.Game(w, h, Phaser.AUTO, 'game-canvas');
-            scope.health = 50;
+            scope.health = 90;
 
             var states = GameStates;
             states.game = scope.game;

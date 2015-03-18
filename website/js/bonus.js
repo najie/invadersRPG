@@ -10,7 +10,9 @@ function Bonus(scope, game, ship) {
         {
             name: 'health',
             value: 1,
-            spriteName: 'bonusHealth'
+            spriteName: 'bonusHealth',
+            dropChance: 100,
+            speed: 400
         }
     ];
 
@@ -24,7 +26,6 @@ function Bonus(scope, game, ship) {
                 var hBonus = _self.game.add.sprite(0,0, bonus.spriteName);
                 hBonus.name = 'hBonus';
                 hBonus.exists = false;
-                hBonus.maxVelocity = 100;
                 bonus.spriteGroup.add(hBonus);
             }
         });

@@ -33,6 +33,7 @@ var GameStates = {
             this.game.load.image('fire-1', 'website/assets/images/fire-ship-2.png');
             this.game.load.image('enemy-1', 'website/assets/images/enemy-2.png');
             this.game.load.image('bonusHealth', 'website/assets/images/bonus-health-1.png');
+            this.game.load.image('boss-1', 'website/assets/images/boss-1.png');
             //this.game.load.image('ship', 'website/assets/images/ship-3.png');
 
             //this.game.load.spritesheet('ship', 'website/assets/images/ship-2.png', 32, 32, 6);
@@ -64,7 +65,7 @@ var GameStates = {
             this.bonus = bonus.bonus;
             this.classes.bonus = bonus;
 
-            var enemies = new Enemy(this.game, this.camera, this.ship);
+            var enemies = new Enemy(this.game, this.camera, this.ship, this.lasers, this.scope);
             enemies.create();
             this.classes.enemy = enemies;
             this.enemies = enemies.enemies;
@@ -83,7 +84,7 @@ var GameStates = {
 
         },
         update: function() {
-
+            var _self = this;
             //Camera
             var lerp = 0.025;
             this.cameraPos.x += (this.ship.x - this.cameraPos.x) * lerp;
@@ -95,9 +96,12 @@ var GameStates = {
             this.classes.bonus.update();
 
             //Collisions
-            this.game.physics.arcade.overlap(this.lasers, this.enemies, this.laserHitEnemy, null, this);
-            this.game.physics.arcade.overlap(this.classes.ship.emitter, this.enemies, this.laserHitEnemy, null, this);
-            this.game.physics.arcade.overlap(this.ship, this.enemies, this.shipHitEnemy, null, this);
+
+            this.enemies.forEach(function(enemy, index) {
+                _self.game.physics.arcade.overlap(_self.lasers, enemy.spriteGroup, _self.laserHitEnemy, null, _self);
+                _self.game.physics.arcade.overlap(_self.ship, enemy.spriteGroup, _self.shipHitEnemy, null, _self);
+            });
+
 
 
         },
@@ -108,21 +112,28 @@ var GameStates = {
         laserHitEnemy: function(laser, enemy) {
             var _self = this;
 
-            var randHealthBonus = rand(0, 10);
-            if(randHealthBonus == 1) {
-                var healthBonus = this.bonus[0].spriteGroup.getFirstExists(false);
-                if(healthBonus) {
-                    healthBonus.exists = true;
-                    healthBonus.x = enemy.x;
-                    healthBonus.y = enemy.y;
-                    healthBonus.update = function() {
-                        _self.game.physics.arcade.moveToObject(this, _self.ship, 100);
-                    };
+            this.bonus.forEach(function(bonus, index) {
+
+                var drop = rand(1, 100/bonus.dropChance);
+
+                if(drop == 1) {
+                    var healthBonus = bonus.spriteGroup.getFirstExists(false);
+                    if(healthBonus) {
+                        healthBonus.exists = true;
+                        healthBonus.x = enemy.x;
+                        healthBonus.y = enemy.y;
+                        healthBonus.update = function() {
+                            _self.game.physics.arcade.moveToObject(this, _self.ship, bonus.speed);
+                        };
+                    }
                 }
-            }
+            });
 
             laser.kill();
-            enemy.kill();
+            enemy.health--;
+            if(enemy.health <= 0) {
+                enemy.kill();
+            }
 
             var boom = this.booms.getFirstAlive();
             if(boom) {
@@ -151,7 +162,7 @@ var GameStates = {
         },
         shipHitEnemy: function(ship, enemy) {
             ship.health -= 1;
-            this.scope.health -=1;
+            this.scope.health -= 1;
             this.scope.$apply();
             enemy.kill();
         }
