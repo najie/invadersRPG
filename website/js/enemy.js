@@ -53,7 +53,9 @@ function Enemy(game, camera, ship, lasers, scope) {
                 sprite.anchor.set(0.5);
                 sprite.exists = false;
                 sprite.health = enemy.health;
-                console.log(sprite);
+                sprite.game.physics.enable(sprite, Phaser.Physics.ARCADE);
+                sprite.body.drag.set(100);
+                sprite.body.maxVelocity.set(100);
                 enemy.spriteGroup.add(sprite);
             }
         });
@@ -109,7 +111,14 @@ function Enemy(game, camera, ship, lasers, scope) {
                 enemy.reset(this.camera.x, this.camera.y - 200, enemy.health);
                 enemy.update = function() {
                     this.rotation = _self.game.physics.arcade.angleBetween(this, _self.ship);
-                    _self.game.physics.arcade.moveToObject(enemy, _self.ship, 100);
+                    if(_self.game.physics.arcade.distanceBetween(this, _self.ship) > 300) {
+                        console.log("far", this.body);
+                        _self.game.physics.arcade.accelerationFromRotation(enemy.rotation, 500, enemy.body.acceleration);
+                    }
+                    else {
+                        console.log("close");
+                        enemy.body.acceleration.set(0);
+                    }
                 }
             }
         }
